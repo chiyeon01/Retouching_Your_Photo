@@ -1,7 +1,9 @@
+import 'dart:typed_data';
+
 import 'package:camera_widget/utils/preprocessImage.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
-Object load_model(List<int> input, int width, int height) async {
+Object loadModel(Uint8List input, int width, int height) async {
   // 모델 로드
   final interpreter = await Interpreter.fromAsset('asset/models/yolo11n_float16.tflite');
 

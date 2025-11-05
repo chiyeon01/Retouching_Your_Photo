@@ -1,30 +1,34 @@
-import 'package:tflite_flutter_helper_plus/tflite_flutter_helper_plus.dart';
+import 'dart:typed_data';
+
+import 'package:image/image.dart' as img;
 
 // image가 모델로 들어가기 전 전처리하는 함수
-TensorImage preprocessImage(List<int> rgbFlatList, int width, int height) {
-  var tensorImage = TensorImage();
-
-  // uint8 rgb -> 원본 사이즈로 resize
-  tensorImage.loadRgbPixels(
-    rgbFlatList,
-    [height, width, 3], // 원본 CameraImage 크기
+ByteBuffer preprocessImage(Uint8List rgbFlatList, int width, int height) {
+  // Image 객체로 변환
+  img.Image originalImage = img.Image.fromBytes(
+    width: width,
+    height: height,
+    bytes: rgbFlatList.buffer,
+    order: img.ChannelOrder.rgb,
   );
 
   // Resize
-  final resizeOp = ResizeOp(
-    640, 640,
-    ResizeMethod.nearestneighbour,
+  img.Image resizedImage = img.copyResize(
+    originalImage,
+    width: 640,
+    height: 640,
+    interpolation: img.Interpolation.nearest,
   );
 
   // Normalize
-  final normalizeOp = NormalizeOp(0.0, 255.0);
+  var imageBytes = resizedImage.getBytes(order: img.ChannelOrder.rgb);
 
-  // processor -> image 변환
-  tensorImage = ImageProcessorBuilder()
-      .add(resizeOp) // resize
-      .add(normalizeOp) // normalize
-      .build() // build
-      .process(tensorImage); // process 실행
+  Float32List floatList = Float32List(640 * 640 * 3);
 
-  return tensorImage;
+  int bufferIndex = 0;
+  for (int i = 0; i < imageBytes.length; i++) {
+    floatList[bufferIndex++] = imageBytes[i] / 255.0;
+  }
+
+  return floatList.buffer;
 }
