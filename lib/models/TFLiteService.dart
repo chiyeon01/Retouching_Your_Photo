@@ -8,13 +8,20 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 Future<List<dynamic>> _runInference(Map<String, dynamic> params) async {
   final image = params['cameraImage'] as CameraImage;
   final interpreterAddress = params['interpreterAddress'] as int;
-  final inputSize = params['inputSize'] as int;
+
+  final inputShape = params['inputShape'] as List<int>;
+  final outputShape = params['outputShape'] as List<int>;
+  final normMean = params['normMean'] as double;
+  final normStd = params['normStd'] as double;
 
   final interpreter = Interpreter.fromAddress(interpreterAddress);
+
+  final inputSize = inputShape[1];
 
   final img.Image? convertedImage = _convertCameraImage(image);
 
   if (convertedImage == null) {
+    print("이미지 변환 실패");
     return [];
   }
 
@@ -24,15 +31,21 @@ Future<List<dynamic>> _runInference(Map<String, dynamic> params) async {
     height: inputSize,
   );
 
-  final normalizedPixels = resizedImage.getBytes(order: img.ChannelOrder.rgb).map((pixel) {
-    return pixel / 255.0;
+  final imageBytes = resizedImage.getBytes(order: img.ChannelOrder.rgb);
+  final normalizedPixels = imageBytes.map((pixel) {
+    return (pixel - normMean) / normStd;
   }).toList();
 
   final inputBuffer = Float32List.fromList(normalizedPixels);
+  final inputTensor = inputBuffer.reshape(inputShape);
 
-  final inputTensor = inputBuffer.reshape([1, inputSize, inputSize, 3]);
-
-  final output = List.filled(1 * 10, 0.0).reshape([1, 10]);
+  final output = List.generate(
+    outputShape[0],
+    (_) => List.generate(
+      outputShape[1],
+      (_) => List.filled(outputShape[2], 0.0),
+    ),
+  );
 
   interpreter.run(inputTensor, output);
 
@@ -85,20 +98,27 @@ img.Image _convertYUV420(CameraImage image) {
 
 class TFLiteService {
   late Interpreter _interpreter;
-  final int _inputSize = 512;
+  late List<int> _inputShape;
+  late List<int> _outputShape;
+
+  final double _normMean = 0.0;
+  final double _normStd = 255.0;
 
   Future<void> loadModel() async {
-    _interpreter = await Interpreter.fromAsset('asset/models/yolo11n_float16.tflite');
-    print('모델 로드 완료.');
-    print('Input tensor: ${_interpreter.getInputTensor(0).shape}');
-    print('Output tensor: ${_interpreter.getOutputTensor(0).shape}');
+    _interpreter = await Interpreter.fromAsset('assets/models/yolo11n_float16.tflite');
+    _inputShape = _interpreter.getInputTensor(0).shape;
+    _outputShape = _interpreter.getOutputTensor(0).shape;
+    print('모델 로드 완료. Input: $_inputShape, Output: $_outputShape');
   }
 
   Future<List<dynamic>> runInference(CameraImage cameraImage) async {
     final params = {
       'cameraImage': cameraImage,
       'interpreterAddress': _interpreter.address,
-      'inputSize': _inputSize,
+      'inputShape': _inputShape,
+      'outputShape': _outputShape,
+      'normMean': _normMean,
+      'normStd': _normStd,
     };
 
     return await compute(_runInference, params);
