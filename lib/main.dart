@@ -1,4 +1,5 @@
 import 'package:camera/camera.dart';
+import 'package:camera_widget/pages/home_page.dart';
 import 'package:camera_widget/screen/home_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -18,7 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: HomeScreen(cameras: cameras),
+      home: HomePage(cameras: cameras),
     );
   }
 }
