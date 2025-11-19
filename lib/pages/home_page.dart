@@ -20,8 +20,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late CameraController _controller;
-  late Future<void> _initializeControllerFuture;
   late TFLiteService _tfLiteService;
+
+  bool _isProcessing = false;
+  bool _isCameraInitialized = false;
 
   String _statusMessage = '대기중...';
   Timer? _statusTimer;
@@ -34,9 +36,17 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     _tfLiteService = TFLiteService();
-    _tfLiteService.loadModel().then((_) {
-      _setupCameraController();
-    });
+    _tfLiteService.loadModel();
+    _initCamera();
+  }
+
+  Future<void> _initCamera() async {
+    await _setupCameraController();
+    if (mounted) {
+      setState(() {
+        _isCameraInitialized = true;
+      });
+    }
   }
 
   Future<void> _setupCameraController() async {
@@ -48,13 +58,45 @@ class _HomePageState extends State<HomePage> {
       enableAudio: false,
     );
 
-    _initializeControllerFuture = _controller.initialize();
+    await _controller.initialize();
     setState(() {});
+
+    _controller.startImageStream((CameraImage image) {
+      if (_isProcessing) {
+        return;
+      }
+
+      _isProcessing = true;
+
+      _tfLiteService.runInference(image).then((results) {
+        if (results.isNotEmpty) {
+          _statusTimer?.cancel();
+
+          setState(() {
+            _statusMessage = "추론 성공!";
+          });
+
+          _statusTimer = Timer(Duration(seconds: 1), () {
+            if (mounted) {
+              setState(() {
+                _statusMessage = "추론 대기 중...";
+              });
+            }
+          });
+        }
+      }).whenComplete(() {
+        _isProcessing = false;
+      });
+
+      setState(() {});
+    });
   }
 
   @override
   void dispose() {
+    _statusTimer?.cancel();
     _controller.dispose();
+    _tfLiteService.dispose();
     super.dispose();
   }
 
@@ -96,7 +138,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -115,34 +156,21 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    return FutureBuilder<void>(
-      future: _initializeControllerFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done &&
-            _controller.value.isInitialized) {
-          return SafeArea(
-            child: CameraLayout(
-              controller: _controller,
-              lastPicture: _lastPicture,
-              onCapture: _onCapture,
-              onSwitchCamera: _onSwitchCamera,
-              onThumbnailTap: _onThumbnailTap,
-              aiGuidanceText: _statusMessage,
-            ),
-          );
-        } else if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              '카메라 초기화 실패: ${snapshot.error}',
-              style: const TextStyle(color: Colors.white),
-            ),
-          );
-        } else {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-      },
+    if (!_isCameraInitialized) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    return  SafeArea(
+      child: CameraLayout(
+        controller: _controller,
+        lastPicture: _lastPicture,
+        onCapture: _onCapture,
+        onSwitchCamera: _onSwitchCamera,
+        onThumbnailTap: _onThumbnailTap,
+        aiGuidanceText: _statusMessage,
+      ),
     );
   }
 }
