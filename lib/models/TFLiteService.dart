@@ -39,17 +39,21 @@ Future<List<dynamic>> _runInference(Map<String, dynamic> params) async {
   final inputBuffer = Float32List.fromList(normalizedPixels);
   final inputTensor = inputBuffer.reshape(inputShape);
 
-  final output = List.generate(
-    outputShape[0],
-    (_) => List.generate(
-      outputShape[1],
-      (_) => List.filled(outputShape[2], 0.0),
-    ),
-  );
+  final outputCount = outputShape[0] * outputShape[1];
+  final output = Float32List(outputCount).reshape(outputShape);
 
   interpreter.run(inputTensor, output);
 
-  return output[0];
+  final List<double> outputList = output[0];
+  int maxIndex = 0;
+
+  for (int i = 0; i < outputList.length; i++) {
+    if (outputList[i] > outputList[maxIndex]) {
+      maxIndex = i;
+    }
+  }
+
+  return [maxIndex];
 }
 
 img.Image? _convertCameraImage(CameraImage image) {
@@ -105,7 +109,7 @@ class TFLiteService {
   final double _normStd = 255.0;
 
   Future<void> loadModel() async {
-    _interpreter = await Interpreter.fromAsset('assets/models/yolo11n_float16.tflite');
+    _interpreter = await Interpreter.fromAsset('assets/models/best_float32.tflite');
     _inputShape = _interpreter.getInputTensor(0).shape;
     _outputShape = _interpreter.getOutputTensor(0).shape;
     print('모델 로드 완료. Input: $_inputShape, Output: $_outputShape');

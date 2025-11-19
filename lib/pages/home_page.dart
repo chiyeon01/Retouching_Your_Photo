@@ -31,6 +31,15 @@ class _HomePageState extends State<HomePage> {
   int _currentCameraIndex = 0;
   XFile? _lastPicture;
 
+  final Map<int, String> _labels = const {
+    0: '카메라 흔들림',
+    1: '좋음',
+    2: '왼쪽으로 회전',
+    3: '오른쪽으로 회전',
+    4: '아래로 기울이기',
+    5: '위로 기울이기',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -73,7 +82,7 @@ class _HomePageState extends State<HomePage> {
           _statusTimer?.cancel();
 
           setState(() {
-            _statusMessage = "추론 성공!";
+            _statusMessage = _labels[results[0]]!;
           });
 
           _statusTimer = Timer(Duration(seconds: 1), () {
