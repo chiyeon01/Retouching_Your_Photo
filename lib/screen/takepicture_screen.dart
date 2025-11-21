@@ -5,8 +5,6 @@ import 'package:camera/camera.dart';
 import 'package:camera_widget/models/TFLiteService.dart';
 import 'package:flutter/material.dart';
 
-import '../utils/to_rgb.dart';
-
 class TakePictureScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
 
