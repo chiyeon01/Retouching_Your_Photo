@@ -24,6 +24,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
   bool _isProcessing = false;
   bool _isCameraInitialized = false;
+  bool _isModelLoaded = false;
 
   String _statusMessage = '대기중...';
   Timer? _statusTimer;
@@ -45,12 +46,19 @@ class _CameraScreenState extends State<CameraScreen> {
     super.initState();
 
     _tfLiteService = TFLiteService();
-    _tfLiteService.loadModel();
     _initCamera();
   }
 
   Future<void> _initCamera() async {
+    try {
+      await _tfLiteService.loadModel();
+      _isModelLoaded = true;
+    } catch (e) {
+      debugPrint('모델 로드 실패: $e');
+    }
+
     await _setupCameraController();
+
     if (mounted) {
       setState(() {
         _isCameraInitialized = true;
@@ -67,44 +75,52 @@ class _CameraScreenState extends State<CameraScreen> {
       enableAudio: false,
     );
 
-    await _controller.initialize();
-    setState(() {});
+    try {
+      await _controller.initialize();
 
-    _controller.startImageStream((CameraImage image) {
-      if (_isProcessing) {
-        return;
-      }
-
-      _isProcessing = true;
-
-      _tfLiteService.runInference(image).then((results) {
-        if (results.isNotEmpty) {
-          _statusTimer?.cancel();
-
-          setState(() {
-            _statusMessage = _labels[results[0]]!;
-          });
-
-          _statusTimer = Timer(Duration(seconds: 1), () {
-            if (mounted) {
-              setState(() {
-                _statusMessage = "추론 대기 중...";
-              });
-            }
-          });
-        }
-      }).whenComplete(() {
-        _isProcessing = false;
-      });
-
+      if (!mounted) return;
       setState(() {});
-    });
+
+      _controller.startImageStream((CameraImage image) {
+        if (_isProcessing || !_isModelLoaded) {
+          return;
+        }
+
+        _isProcessing = true;
+
+        _tfLiteService.runInference(image).then((results) {
+          if (results.isNotEmpty && mounted) {
+            _statusTimer?.cancel();
+
+            setState(() {
+              _statusMessage = _labels[results[0]] ?? '알 수 없음';
+            });
+
+            _statusTimer = Timer(Duration(seconds: 1), () {
+              if (mounted) {
+                setState(() {
+                  _statusMessage = "추론 대기 중...";
+                });
+              }
+            });
+          }
+        }).catchError((e) {
+          debugPrint("Inference error: $e");
+        }).whenComplete(() {
+          _isProcessing = false;
+        });
+      });
+    } catch (e) {
+      debugPrint("카메라 초기화 오류: $e");
+    }
   }
 
   @override
   void dispose() {
     _statusTimer?.cancel();
+    if (_isCameraInitialized) {
     _controller.dispose();
+    }
     _tfLiteService.dispose();
     super.dispose();
   }

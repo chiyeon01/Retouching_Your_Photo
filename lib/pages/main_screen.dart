@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'home_page.dart';
+import 'camera_screen.dart';
 
 class MainScreen extends StatelessWidget {
   final List<CameraDescription> cameras;
@@ -60,7 +60,7 @@ class MainScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => HomePage(cameras: cameras),
+                            builder: (_) => CameraScreen(cameras: cameras),
                           ),
                         );
                       },
@@ -74,7 +74,7 @@ class MainScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => HomePage(cameras: cameras),
+                            builder: (_) => CameraScreen(cameras: cameras),
                           ),
                         );
                       },
