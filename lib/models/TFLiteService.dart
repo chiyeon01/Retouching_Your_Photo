@@ -105,17 +105,34 @@ class TFLiteService {
   late List<int> _inputShape;
   late List<int> _outputShape;
 
+  bool _isModelLoaded = false;
+
   final double _normMean = 0.0;
   final double _normStd = 255.0;
 
   Future<void> loadModel() async {
-    _interpreter = await Interpreter.fromAsset('assets/models/best_float32.tflite');
-    _inputShape = _interpreter.getInputTensor(0).shape;
-    _outputShape = _interpreter.getOutputTensor(0).shape;
-    print('모델 로드 완료. Input: $_inputShape, Output: $_outputShape');
+    try {
+      _interpreter =
+      await Interpreter.fromAsset('assets/models/best_float32.tflite');
+      _inputShape = _interpreter
+          .getInputTensor(0)
+          .shape;
+      _outputShape = _interpreter
+          .getOutputTensor(0)
+          .shape;
+      _isModelLoaded = true;
+      print('모델 로드 완료. Input: $_inputShape, Output: $_outputShape');
+    } catch (e) {
+      print('모델 로드 실패: $e');
+    }
   }
 
   Future<List<dynamic>> runInference(CameraImage cameraImage) async {
+    if (!_isModelLoaded) {
+      print("모델이 아직 로드되지 않았습니다.");
+      return [];
+    }
+
     final params = {
       'cameraImage': cameraImage,
       'interpreterAddress': _interpreter.address,
@@ -129,6 +146,8 @@ class TFLiteService {
   }
 
   void dispose() {
-    _interpreter.close();
+    if (_isModelLoaded) {
+      _interpreter.close();
+    }
   }
 }

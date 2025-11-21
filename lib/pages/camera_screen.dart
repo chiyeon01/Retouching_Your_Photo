@@ -6,19 +6,19 @@ import 'package:flutter/material.dart';
 import 'package:camera_widget/pages/camera_layout.dart';
 import 'package:camera_widget/pages/image_preview_page.dart';
 
-class HomePage extends StatefulWidget {
+class CameraScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
 
-  const HomePage({
+  const CameraScreen({
     super.key,
     required this.cameras,
   });
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<CameraScreen> createState() => _CameraScreenState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _CameraScreenState extends State<CameraScreen> {
   late CameraController _controller;
   late TFLiteService _tfLiteService;
 
