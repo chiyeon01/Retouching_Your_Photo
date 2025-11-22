@@ -12,7 +12,6 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  // 하단 네비게이션 바 인덱스 상태 관리
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
@@ -21,42 +20,39 @@ class _MainScreenState extends State<MainScreen> {
     });
 
     if (index == 1) {
-      // TODO: 갤러리 화면으로 이동하거나 갤러리 피커 실행
+      // TODO: 갤러리 실행 로직
       print("갤러리 실행");
-      // 갤러리 작업 후 다시 홈(0)으로 돌아오게 하려면 아래 코드 주석 해제
-      // Future.delayed(const Duration(milliseconds: 300), () {
-      //   setState(() => _selectedIndex = 0);
-      // });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // 테마 색상 정의 (참고 이미지의 청록색)
-    const Color themeColor = Color(0xFF26C6DA);
-    const Color backgroundColor = Color(0xFFF5F6F8); // 눈이 편안한 옅은 회색 배경
+    // 색상 팔레트
+    const Color deepIndigo = Color(0xFF1A237E); // 헤더 배경
+    const Color pointBlue = Color(0xFF283593);  // 아이콘 및 강조색
+    const Color backgroundColor = Color(0xFFF5F6F8); // 배경색
 
     return Scaffold(
       backgroundColor: backgroundColor,
 
-      // 본문 영역
       body: Column(
         children: [
-          // 1. 상단 헤더 (둥근 배경)
+          // 1. 상단 헤더
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(24, 70, 24, 40), // 상단 여백 넉넉히
-            decoration: const BoxDecoration(
-              color: themeColor,
-              borderRadius: BorderRadius.only(
+            padding: const EdgeInsets.fromLTRB(24, 70, 24, 40),
+            decoration: BoxDecoration(
+              color: deepIndigo,
+              borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(30),
                 bottomRight: Radius.circular(30),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 10,
-                  offset: Offset(0, 5),
+                  // 기존 남색 계열 그림자에서 검정색 계열로 변경
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
@@ -77,7 +73,7 @@ class _MainScreenState extends State<MainScreen> {
                   '원하는 촬영 모드를 선택해주세요.',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withOpacity(0.85),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -85,19 +81,19 @@ class _MainScreenState extends State<MainScreen> {
             ),
           ),
 
-          // 2. 중앙 메인 버튼 영역 (인물/배경)
+          // 2. 중앙 메인 버튼 영역
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Row(
                 children: [
-                  // 인물 촬영 카드
+                  // 인물 촬영 버튼
                   Expanded(
                     child: _FeatureCard(
                       icon: Icons.person_rounded,
                       title: '인물 촬영',
                       subtitle: '인생샷을 위한\n구도 추천',
-                      themeColor: themeColor,
+                      iconColor: pointBlue,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -108,14 +104,14 @@ class _MainScreenState extends State<MainScreen> {
                       },
                     ),
                   ),
-                  const SizedBox(width: 16), // 카드 사이 간격
-                  // 배경 촬영 카드
+                  const SizedBox(width: 16),
+                  // 배경 촬영 버튼
                   Expanded(
                     child: _FeatureCard(
                       icon: Icons.landscape_rounded,
                       title: '배경 촬영',
                       subtitle: '풍경을 담는\n완벽한 비율',
-                      themeColor: themeColor,
+                      iconColor: pointBlue,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -131,17 +127,16 @@ class _MainScreenState extends State<MainScreen> {
             ),
           ),
 
-          // 하단 여백 (버튼이 너무 바닥에 붙지 않게)
           const SizedBox(height: 40),
         ],
       ),
 
-      // 3. 하단 네비게이션 바 (홈 / 갤러리)
+      // 3. 하단 네비게이션 바
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black12,
+              color: Colors.black12, // 기본 검정 그림자 유지
               blurRadius: 10,
               spreadRadius: 0,
               offset: Offset(0, -2),
@@ -150,13 +145,14 @@ class _MainScreenState extends State<MainScreen> {
         ),
         child: BottomNavigationBar(
           backgroundColor: Colors.white,
-          selectedItemColor: themeColor, // 선택된 아이콘 색상
-          unselectedItemColor: Colors.grey[400], // 선택 안 된 아이콘 색상
+          selectedItemColor: deepIndigo,
+          unselectedItemColor: Colors.grey[400],
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
           showUnselectedLabels: true,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
           type: BottomNavigationBarType.fixed,
-          elevation: 0, // 상단 그림자는 Container로 처리함
+          elevation: 0,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_rounded, size: 28),
@@ -173,19 +169,19 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-// 기능 카드 위젯 (세로로 긴 형태)
+// 기능 카드 위젯 (_FeatureCard)
 class _FeatureCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final Color themeColor;
+  final Color iconColor;
   final VoidCallback onTap;
 
   const _FeatureCard({
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.themeColor,
+    required this.iconColor,
     required this.onTap,
   });
 
@@ -193,7 +189,6 @@ class _FeatureCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
         builder: (context, constraints) {
-          // 화면 크기에 비례하여 카드 높이 설정 (너무 길어지지 않게 제한)
           final double cardHeight = constraints.maxHeight * 0.65;
 
           return Center(
@@ -207,7 +202,8 @@ class _FeatureCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: themeColor.withOpacity(0.15),
+                      // [수정됨] 기존 iconColor 기반에서 검정색 기반으로 변경
+                      color: Colors.black.withOpacity(0.1),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -218,22 +214,22 @@ class _FeatureCard extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // 아이콘 배경 원
+                      // 아이콘 배경
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: themeColor.withOpacity(0.1),
+                          color: iconColor.withOpacity(0.08),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(icon, size: 48, color: themeColor),
+                        child: Icon(icon, size: 48, color: iconColor),
                       ),
                       const Spacer(),
                       Text(
                         title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF333333),
+                          color: Colors.grey[800],
                         ),
                       ),
                       const SizedBox(height: 8),
