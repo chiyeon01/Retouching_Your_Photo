@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:camera/camera.dart';
-import 'package:camera_widget/models/TFLiteService.dart';
+import 'package:camera_widget/service/TFLiteService.dart';
 import 'package:flutter/material.dart';
 import 'package:camera_widget/pages/camera_layout.dart';
 import 'package:camera_widget/pages/image_preview_page.dart';
@@ -73,6 +73,7 @@ class _CameraScreenState extends State<CameraScreen> {
       widget.cameras[_currentCameraIndex],
       ResolutionPreset.high,
       enableAudio: false,
+      imageFormatGroup: ImageFormatGroup.yuv420,
     );
 
     try {
@@ -87,14 +88,24 @@ class _CameraScreenState extends State<CameraScreen> {
         }
 
         _isProcessing = true;
+        // final stopwatch = Stopwatch()..start();
 
         _tfLiteService.runInference(image).then((results) {
+          // stopwatch.stop();
+          // final int elapsed = stopwatch.elapsedMilliseconds;
+          //
+          // print('추론 소요 시간: ${elapsed}ms');
+
           if (results.isNotEmpty && mounted) {
             _statusTimer?.cancel();
 
-            setState(() {
-              _statusMessage = _labels[results[0]] ?? '알 수 없음';
-            });
+            final String newMessage = _labels[results[0]] ?? '알 수 없음';
+
+            if (_statusMessage != newMessage) {
+              setState(() {
+                _statusMessage = newMessage;
+              });
+            }
 
             _statusTimer = Timer(Duration(seconds: 1), () {
               if (mounted) {
