@@ -25,8 +25,20 @@ Future<List<dynamic>> _runInference(Map<String, dynamic> params) async {
     return [];
   }
 
-  final img.Image resizedImage = img.copyResize(
+  int size = convertedImage.width < convertedImage.height
+      ? convertedImage.width
+      : convertedImage.height;
+
+  final img.Image croppedImage = img.copyCrop(
     convertedImage,
+    x: (convertedImage.width - size) ~/ 2,
+    y: (convertedImage.height - size) ~/ 2,
+    width: size,
+    height: size,
+  );
+
+  final img.Image resizedImage = img.copyResize(
+    croppedImage,
     width: inputSize,
     height: inputSize,
   );
@@ -78,20 +90,31 @@ img.Image _convertYUV420(CameraImage image) {
   final int uvRowStride = image.planes[1].bytesPerRow;
   final int uvPixelStride = image.planes[1].bytesPerPixel!;
 
+  final Uint8List yPlane = image.planes[0].bytes;
+  final Uint8List uPlane = image.planes[1].bytes;
+  final Uint8List vPlane = image.planes[2].bytes;
+
   final imageResult = img.Image(width: width, height: height);
 
   for (int y = 0; y < height; y++) {
+    final int yIndexBase = y * width;
+    final int uvRowIndex = (y >> 1) * uvRowStride;
+
     for (int x = 0; x < width; x++) {
-      final int uvIndex = uvPixelStride * (x / 2).floor() + uvRowStride * (y / 2).floor();
-      final int index = y * width + x;
+      final int uvIndex = uvRowIndex + (x >> 1) * uvPixelStride;
+      final int index = yIndexBase + x;
 
-      final yp = image.planes[0].bytes[index];
-      final up = image.planes[1].bytes[uvIndex];
-      final vp = image.planes[2].bytes[uvIndex];
+      final yp = yPlane[index];
+      final up = uPlane[uvIndex];
+      final vp = vPlane[uvIndex];
 
-      int r = (yp + vp * 1436 / 1024 - 179).round().clamp(0, 255);
-      int g = (yp - up * 46549 / 131072 + 44 - vp * 93604 / 131072 + 91).round().clamp(0, 255);
-      int b = (yp + up * 1814 / 1024 - 227).round().clamp(0, 255);
+      int r = yp + ((vp - 128) * 1436 >> 10);
+      int g = yp - ((up - 128) * 352 >> 10) - ((vp -128) * 731 >> 10);
+      int b = yp + ((up - 128) * 1814 >> 10);
+
+      if (r < 0) r = 0; else if (r > 255) r = 255;
+      if (g < 0) g = 0; else if (g > 255) g = 255;
+      if (b < 0) b = 0; else if (b > 255) b = 255;
 
       imageResult.setPixelRgb(x, y, r, g, b);
     }
