@@ -6,12 +6,16 @@ import 'package:flutter/material.dart';
 import 'package:camera_widget/pages/camera_layout.dart';
 import 'package:camera_widget/pages/image_preview_page.dart';
 
+enum CameraMode { portrait, landscape }
+
 class CameraScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
+  final CameraMode mode;
 
   const CameraScreen({
     super.key,
     required this.cameras,
+    required this.mode,
   });
 
   @override

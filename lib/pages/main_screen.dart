@@ -29,7 +29,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     // 색상 팔레트
     const Color deepIndigo = Color(0xFF1A237E); // 헤더 배경
-    const Color pointBlue = Color(0xFF283593);  // 아이콘 및 강조색
+    const Color pointBlue = Color(0xFF283593); // 아이콘 및 강조색
     const Color backgroundColor = Color(0xFFF5F6F8); // 배경색
 
     return Scaffold(
@@ -98,7 +98,11 @@ class _MainScreenState extends State<MainScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => CameraScreen(cameras: widget.cameras),
+                            builder: (_) =>
+                                CameraScreen(
+                                  cameras: widget.cameras,
+                                  mode: CameraMode.portrait,
+                                ),
                           ),
                         );
                       },
@@ -116,7 +120,11 @@ class _MainScreenState extends State<MainScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => CameraScreen(cameras: widget.cameras),
+                            builder: (_) =>
+                                CameraScreen(
+                                  cameras: widget.cameras,
+                                  mode: CameraMode.landscape,
+                                ),
                           ),
                         );
                       },
