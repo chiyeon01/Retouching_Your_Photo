@@ -41,7 +41,7 @@ dependencies:
   path: ^1.9.1
   tflite_flutter: ^0.12.1
   image: ^4.5.4
-  yuv_converter: ^0.0.2
+  photo_manager: ^3.8.0
 
 dev_dependencies:
   flutter_test:
