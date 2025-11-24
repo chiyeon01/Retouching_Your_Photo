@@ -55,7 +55,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
   Future<void> _initCamera() async {
     try {
-      await _tfLiteService.loadModel();
+      await _tfLiteService.loadModel(widget.mode);
       _isModelLoaded = true;
     } catch (e) {
       debugPrint('모델 로드 실패: $e');

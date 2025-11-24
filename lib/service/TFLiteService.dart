@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
+import 'package:camera_widget/pages/camera_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
@@ -133,10 +134,15 @@ class TFLiteService {
   final double _normMean = 0.0;
   final double _normStd = 255.0;
 
-  Future<void> loadModel() async {
+  Future<void> loadModel(CameraMode mode) async {
     try {
-      _interpreter =
-      await Interpreter.fromAsset('assets/models/best_float32.tflite');
+      if (mode == CameraMode.portrait) {
+        _interpreter =
+        await Interpreter.fromAsset('assets/models/portrait_model.tflite');
+      } else if (mode == CameraMode.landscape) {
+        _interpreter =
+        await Interpreter.fromAsset('assets/models/landscape_model.tflite');
+      }
       _inputShape = _interpreter
           .getInputTensor(0)
           .shape;
