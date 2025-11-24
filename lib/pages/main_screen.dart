@@ -1,3 +1,4 @@
+import 'package:camera_widget/pages/gallery_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'camera_screen.dart';
@@ -14,15 +15,21 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      _buildHomeView(),
+      const GalleryScreen(),
+    ];
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
-
-    if (index == 1) {
-      // TODO: 갤러리 실행 로직
-      print("갤러리 실행");
-    }
   }
 
   @override
@@ -35,111 +42,12 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       backgroundColor: backgroundColor,
 
-      body: Column(
-        children: [
-          // 1. 상단 헤더
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(24, 70, 24, 40),
-            decoration: BoxDecoration(
-              color: deepIndigo,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  // 기존 남색 계열 그림자에서 검정색 계열로 변경
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 15,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Retouching\nYour Photo',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    height: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  '원하는 촬영 모드를 선택해주세요.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white.withOpacity(0.85),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // 2. 중앙 메인 버튼 영역
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Row(
-                children: [
-                  // 인물 촬영 버튼
-                  Expanded(
-                    child: _FeatureCard(
-                      icon: Icons.person_rounded,
-                      title: '인물 촬영',
-                      subtitle: '인생샷을 위한\n구도 추천',
-                      iconColor: pointBlue,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                CameraScreen(
-                                  cameras: widget.cameras,
-                                  mode: CameraMode.portrait,
-                                ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  // 배경 촬영 버튼
-                  Expanded(
-                    child: _FeatureCard(
-                      icon: Icons.landscape_rounded,
-                      title: '배경 촬영',
-                      subtitle: '풍경을 담는\n완벽한 비율',
-                      iconColor: pointBlue,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                CameraScreen(
-                                  cameras: widget.cameras,
-                                  mode: CameraMode.landscape,
-                                ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 40),
-        ],
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
       ),
 
-      // 3. 하단 네비게이션 바
+      // 하단 네비게이션 바
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           boxShadow: [
@@ -173,6 +81,114 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildHomeView() {
+    const Color deepIndigo = Color(0xFF1A237E);
+    const Color pointBlue = Color(0xFF283593);
+
+    return Column(
+      children: [
+        // 헤더
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(24, 70, 24, 40),
+          decoration: BoxDecoration(
+            color: deepIndigo,
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(30),
+              bottomRight: Radius.circular(30),
+            ),
+            boxShadow: [
+              BoxShadow(
+                // 기존 남색 계열 그림자에서 검정색 계열로 변경
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Retouching\nYour Photo',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  height: 1.2,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                '원하는 촬영 모드를 선택해주세요.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.white.withOpacity(0.85),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // 버튼 영역
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Row(
+              children: [
+                // 인물 촬영 버튼
+                Expanded(
+                  child: _FeatureCard(
+                    icon: Icons.person_rounded,
+                    title: '인물 촬영',
+                    subtitle: '인생샷을 위한\n구도 추천',
+                    iconColor: pointBlue,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              CameraScreen(
+                                cameras: widget.cameras,
+                                mode: CameraMode.portrait,
+                              ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // 배경 촬영 버튼
+                Expanded(
+                  child: _FeatureCard(
+                    icon: Icons.landscape_rounded,
+                    title: '배경 촬영',
+                    subtitle: '풍경을 담는\n완벽한 비율',
+                    iconColor: pointBlue,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              CameraScreen(
+                                cameras: widget.cameras,
+                                mode: CameraMode.landscape,
+                              ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 40),
+      ],
     );
   }
 }
