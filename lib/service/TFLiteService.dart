@@ -130,6 +130,8 @@ class TFLiteService {
   late List<int> _outputShape;
 
   bool _isModelLoaded = false;
+  bool _isInferencing = false;
+  bool _isDisposeRequested = false;
 
   final double _normMean = 0.0;
   final double _normStd = 255.0;
@@ -157,10 +159,12 @@ class TFLiteService {
   }
 
   Future<List<dynamic>> runInference(CameraImage cameraImage) async {
-    if (!_isModelLoaded) {
+    if (!_isModelLoaded || _isDisposeRequested) {
       print("모델이 아직 로드되지 않았습니다.");
       return [];
     }
+
+    _isInferencing = true;
 
     final params = {
       'cameraImage': cameraImage,
@@ -171,12 +175,37 @@ class TFLiteService {
       'normStd': _normStd,
     };
 
-    return await compute(_runInference, params);
+    try {
+      return await compute(_runInference, params);
+    } catch (e) {
+      print("추론 중 에러 발생: $e");
+      return [];
+    } finally {
+      _isInferencing = false;
+
+      if (_isDisposeRequested) {
+        _closeInterpreter();
+      }
+    }
   }
 
   void dispose() {
+    _isDisposeRequested = true;
+
+    if (!_isInferencing) {
+      _closeInterpreter();
+    }
+  }
+
+  void _closeInterpreter() {
     if (_isModelLoaded) {
-      _interpreter.close();
+      try {
+        _interpreter.close();
+        _isModelLoaded = false;
+        print("모델 리소스 안전하게 해제됨");
+      } catch (e) {
+        print("모델 해제 중 오류: $e");
+      }
     }
   }
 }

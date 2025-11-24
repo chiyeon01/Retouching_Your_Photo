@@ -71,6 +71,7 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   Future<void> _setupCameraController() async {
+    print(widget.cameras.length);
     if (widget.cameras.isEmpty) return;
 
     _controller = CameraController(
@@ -87,7 +88,7 @@ class _CameraScreenState extends State<CameraScreen> {
       setState(() {});
 
       _controller.startImageStream((CameraImage image) {
-        if (_isProcessing || !_isModelLoaded) {
+        if (!mounted || _isProcessing || !_isModelLoaded) {
           return;
         }
 
@@ -95,12 +96,13 @@ class _CameraScreenState extends State<CameraScreen> {
         // final stopwatch = Stopwatch()..start();
 
         _tfLiteService.runInference(image).then((results) {
+          if (!mounted) return;
           // stopwatch.stop();
           // final int elapsed = stopwatch.elapsedMilliseconds;
           //
           // print('추론 소요 시간: ${elapsed}ms');
 
-          if (results.isNotEmpty && mounted) {
+          if (results.isNotEmpty) {
             _statusTimer?.cancel();
 
             final String newMessage = _labels[results[0]] ?? '알 수 없음';
@@ -122,7 +124,9 @@ class _CameraScreenState extends State<CameraScreen> {
         }).catchError((e) {
           debugPrint("Inference error: $e");
         }).whenComplete(() {
-          _isProcessing = false;
+          if (mounted) {
+            _isProcessing = false;
+          }
         });
       });
     } catch (e) {
@@ -133,10 +137,15 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   void dispose() {
     _statusTimer?.cancel();
-    if (_isCameraInitialized) {
-    _controller.dispose();
+
+    if (_controller.value.isInitialized && _controller.value.isStreamingImages) {
+      _controller.stopImageStream();
     }
+
     _tfLiteService.dispose();
+
+    _controller.dispose();
+
     super.dispose();
   }
 
