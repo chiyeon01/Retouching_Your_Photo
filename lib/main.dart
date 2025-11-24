@@ -1,7 +1,5 @@
 import 'package:camera/camera.dart';
-import 'package:camera_widget/pages/camera_screen.dart';
 import 'package:camera_widget/pages/main_screen.dart';
-import 'package:camera_widget/screen/home_screen.dart';
 import 'package:flutter/material.dart';
 
 late List<CameraDescription> cameras;
