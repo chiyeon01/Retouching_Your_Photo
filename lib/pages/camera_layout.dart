@@ -25,14 +25,30 @@ class CameraLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size.width;
+
     return Column(
       children: [
         // 상단 2/3: 카메라 프리뷰
-        Expanded(
-          flex: 2,
+        Transform.scale(
+          scale: 1.0,
           child: AspectRatio(
-            aspectRatio: controller.value.aspectRatio,
-            child: CameraPreview(controller),
+            aspectRatio: 3.0 / 4.0,
+            child: OverflowBox(
+              alignment: Alignment.center,
+              child: FittedBox(
+                fit: BoxFit.fitWidth,
+                child: SizedBox(
+                  width: size,
+                  height: size * controller.value.aspectRatio,
+                  child: Stack(
+                    children: [
+                      CameraPreview(controller)
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
         AiGuidanceOverlay(

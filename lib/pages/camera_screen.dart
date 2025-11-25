@@ -211,15 +211,13 @@ class _CameraScreenState extends State<CameraScreen> {
       );
     }
 
-    return  SafeArea(
-      child: CameraLayout(
-        controller: _controller,
-        lastPicture: _lastPicture,
-        onCapture: _onCapture,
-        onSwitchCamera: _onSwitchCamera,
-        onThumbnailTap: _onThumbnailTap,
-        aiGuidanceText: _statusMessage,
-      ),
+    return  CameraLayout(
+      controller: _controller,
+      lastPicture: _lastPicture,
+      onCapture: _onCapture,
+      onSwitchCamera: _onSwitchCamera,
+      onThumbnailTap: _onThumbnailTap,
+      aiGuidanceText: _statusMessage,
     );
   }
 }
