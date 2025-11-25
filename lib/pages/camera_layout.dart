@@ -9,8 +9,6 @@ class CameraLayout extends StatelessWidget {
   final VoidCallback onCapture;
   final VoidCallback onSwitchCamera;
   final VoidCallback? onThumbnailTap;
-
-  //AI에서 받아온 가이드 텍스트
   final String? aiGuidanceText;
 
   const CameraLayout({
@@ -25,31 +23,64 @@ class CameraLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size.width;
+    final size = MediaQuery
+        .of(context)
+        .size
+        .width;
+    final double statusBarHeight = MediaQuery
+        .of(context)
+        .padding
+        .top;
 
     return Column(
       children: [
-        // 상단 2/3: 카메라 프리뷰
-        Transform.scale(
-          scale: 1.0,
-          child: AspectRatio(
-            aspectRatio: 3.0 / 4.0,
-            child: OverflowBox(
-              alignment: Alignment.center,
-              child: FittedBox(
-                fit: BoxFit.fitWidth,
-                child: SizedBox(
-                  width: size,
-                  height: size * controller.value.aspectRatio,
-                  child: Stack(
-                    children: [
-                      CameraPreview(controller)
-                    ],
+        Stack(
+          children: [
+            Transform.scale(
+              scale: 1.0,
+              child: AspectRatio(
+                aspectRatio: 3.0 / 4.0,
+                child: OverflowBox(
+                  alignment: Alignment.center,
+                  child: FittedBox(
+                    fit: BoxFit.fitWidth,
+                    child: SizedBox(
+                      width: size,
+                      height: size * controller.value.aspectRatio,
+                      child: Stack(
+                        children: [
+                          CameraPreview(controller)
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
+
+            Positioned(
+              top: statusBarHeight + 10,
+              left: 16,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle, // 동그란 모양
+                ),
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                  padding: const EdgeInsets.all(12),
+                  constraints: const BoxConstraints(),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ),
+            ),
+          ],
         ),
         AiGuidanceOverlay(
             guidanceText: aiGuidanceText
