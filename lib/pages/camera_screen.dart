@@ -39,8 +39,8 @@ class _CameraScreenState extends State<CameraScreen> {
   final Map<int, String> _labels = const {
     0: '카메라 흔들림',
     1: '좋음',
-    2: '왼쪽으로 회전',
-    3: '오른쪽으로 회전',
+    2: '반시계 방향으로 회전',
+    3: '시계 방향으로 회전',
     4: '아래로 기울이기',
     5: '위로 기울이기',
   };

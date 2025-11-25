@@ -60,9 +60,9 @@ class AiGuidanceOverlay extends StatelessWidget {
     IconData icon;
 
     if (text.contains('왼쪽')) {
-      icon = Icons.arrow_back;
+      icon = Icons.undo;
     } else if (text.contains('오른쪽')) {
-      icon = Icons.arrow_forward;
+      icon = Icons.redo;
     } else if (text.contains('위')) {
       icon = Icons.arrow_upward;
     } else if (text.contains('아래')) {
